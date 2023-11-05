@@ -1,4 +1,4 @@
-from django.db.models import Prefetch, F
+from django.db.models import Prefetch, F, Sum
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from .models import Subscripton, Client
 from .serializers import SubscriptionSerializer
@@ -15,8 +15,23 @@ class SubscriptionView(ReadOnlyModelViewSet):
                      
     serializer_class = SubscriptionSerializer
 
-''' n+1 при добавлении вложенного серализаторо plan
-(0.000) SELECT "services_plan"."id", "services_plan"."plan_types", "services_plan"."discount_percent" FROM "services_plan" WHERE "services_plan"."id" = 3 LIMIT 21; args=(3,); alias=default
-(0.000) SELECT "services_plan"."id", "services_plan"."plan_types", "services_plan"."discount_percent" FROM "services_plan" WHERE "services_plan"."id" = 2 LIMIT 21; args=(2,); alias=default
-(0.000) SELECT "services_plan"."id", "services_plan"."plan_types", "services_plan"."discount_percent" FROM "services_plan" WHERE "services_plan"."id" = 3 LIMIT 21; args=(3,); alias=default
-'''
+    ''' n+1 при добавлении вложенного серализаторо plan
+    (0.000) SELECT "services_plan"."id", "services_plan"."plan_types", "services_plan"."discount_percent" FROM "services_plan" WHERE "services_plan"."id" = 3 LIMIT 21; args=(3,); alias=default
+    (0.000) SELECT "services_plan"."id", "services_plan"."plan_types", "services_plan"."discount_percent" FROM "services_plan" WHERE "services_plan"."id" = 2 LIMIT 21; args=(2,); alias=default
+    (0.000) SELECT "services_plan"."id", "services_plan"."plan_types", "services_plan"."discount_percent" FROM "services_plan" WHERE "services_plan"."id" = 3 LIMIT 21; args=(3,); alias=default
+    '''
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        responce = super().list(request, *args, **kwargs)
+
+        responce_data = {'result': responce.data}
+        # print("===================================")
+        # for i in responce_data['result']:
+        #     print(i['price'])
+        # responce_data['total_amount'] = sum([i['price'] for i in responce_data['result']])
+        responce_data['total_amount'] = queryset.aggregate(total=Sum('price')).get('total')
+        responce.data = responce_data
+        print(responce.data['total_amount'])
+        return responce
+    
