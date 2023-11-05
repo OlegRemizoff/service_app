@@ -20,9 +20,9 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField() # ищет функцию get_имя поля
 
     def get_price(self, instance): # instance = Subcriptions
-        return (instance.service.full_price - 
-               (instance.service.full_price * instance.plan.discount_percent / 100))
-
+        # return (instance.service.full_price - 
+        #        (instance.service.full_price * instance.plan.discount_percent / 100))
+        return instance.price # вычеслили в subsciprion.objects.all().annotate()
 
     class Meta:
         model = Subscripton
