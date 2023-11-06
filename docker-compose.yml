@@ -4,18 +4,18 @@ services:
   django:
     build: .
     container_name: django
-    command: sh -c "python app/manage.py migrate &&
-      python app/create_superuser.py && python app/manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python manage.py migrate &&
+      python create_superuser.py && python manage.py runserver 0.0.0.0:8000"
 
     volumes:
-      - .:/app
+      - .:/user/src/service_app/
     ports:
       - 8000:8000
 
     depends_on:
-      - pgdb
+      - database
 
-  pgdb:
+  database:
     restart: always
     image: postgres:alpine
     environment:
@@ -27,8 +27,7 @@ services:
     volumes:
       - pgdbdata:/var/lib/postgresql/data/ 
 volumes:
-  pgdbdata: 
-
+  pgdbdata:
 
 
 

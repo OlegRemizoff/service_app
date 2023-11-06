@@ -5,11 +5,11 @@ FROM python:alpine
 RUN pip install --upgrade pip
 
 
-WORKDIR /user/src/
+WORKDIR /user/src/service_app/app
 
-COPY ./requirements.txt /user/src/
+COPY ./requirements.txt /user/src/service_app/app/
 RUN python3 -m pip install -r requirements.txt
-COPY . /user/src/
+COPY . /user/src/service_app
 
 
 
