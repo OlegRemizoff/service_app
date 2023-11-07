@@ -1,38 +1,50 @@
-version: '3.9'  
+version: '3.9'
+
+# docker-compose exec [имя контейнера] python manage.py [команда]
+
 
 services:
   django:
     build: .
     container_name: django
-    command: sh -c "python manage.py migrate &&
-      python create_superuser.py && python manage.py runserver 0.0.0.0:8000"
-
+    command: sh -c "python manage.py migrate && python create_superuser.py && python manage.py runserver 0.0.0.0:8000"
     volumes:
-      - .:/user/src/service_app/
+      - .:/usr/src/service_app/
     ports:
       - 8000:8000
-
     depends_on:
       - database
+      - redis
 
   database:
     restart: always
     image: postgres:alpine
     environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     container_name: pgdb
     volumes:
-      - pgdbdata:/var/lib/postgresql/data/ 
+      - pgdbdata:/var/lib/postgresql/data/
+
+  redis:
+    image: redis:7.2.3-alpine3.18
+    hostname: redis
+
+  worker:
+    build:
+      context: .
+    container_name: worker
+    entrypoint: celery
+    command: -A celery_app.app worker --loglevel=info
+    volumes:
+      - .:/usr/src/service_app/
+    depends_on:
+      - redis
+
 volumes:
   pgdbdata:
-
-
-
-
-
+  worker-data:
 
 
 
