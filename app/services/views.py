@@ -10,8 +10,8 @@ class SubscriptionView(ReadOnlyModelViewSet):
         'plan', # оптимизирует проблему n+1 - FROM "services_plan" WHERE "services_plan"."id" IN (2, 3)
         Prefetch('client', # присоединит клиентов where id in [1, 2....]
     queryset=Client.objects.all().select_related('user').only('company_name', 'user__email')) # только нужные поля
-    ).annotate(price=F("service__full_price") - 
-                     F("service__full_price") * F("plan__discount_percent") / 100.00)
+    )#.annotate(price=F("service__full_price") - 
+     #               F("service__full_price") * F("plan__discount_percent") / 100.00)
                      
     serializer_class = SubscriptionSerializer
 
@@ -32,6 +32,5 @@ class SubscriptionView(ReadOnlyModelViewSet):
         # responce_data['total_amount'] = sum([i['price'] for i in responce_data['result']])
         responce_data['total_amount'] = queryset.aggregate(total=Sum('price')).get('total')
         responce.data = responce_data
-        print(responce.data['total_amount'])
-        return responce
+        return responce 
     
