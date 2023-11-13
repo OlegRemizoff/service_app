@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator
 from clients.models import Client
-from app.services.tasks import set_price
+from services.tasks import set_price
 
 
 class Service(models.Model):

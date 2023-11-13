@@ -23,14 +23,14 @@ class SubscriptionView(ReadOnlyModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        responce = super().list(request, *args, **kwargs)
+        response = super().list(request, *args, **kwargs)
 
-        responce_data = {'result': responce.data}
+        responce_data = {'result': response.data}
         # print("===================================")
         # for i in responce_data['result']:
         #     print(i['price'])
         # responce_data['total_amount'] = sum([i['price'] for i in responce_data['result']])
         responce_data['total_amount'] = queryset.aggregate(total=Sum('price')).get('total')
-        responce.data = responce_data
-        return responce 
+        response.data = responce_data
+        return response 
     
