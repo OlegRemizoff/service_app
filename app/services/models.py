@@ -13,10 +13,13 @@ class Service(models.Model):
         self.__full_price = self.full_price # фиксируем цену
 
     def save(self, *args, **kwargs):  # функция будет вызвана при создании или изменении модели
-        if self.full_price != self.__full_price: # если скидка изменилась, то изменим ее цену
-            for subscription in self.subscriptions.all(): # related name из Subscription
-                set_price.delay(subscription.id) # обновляем поле при помощи нашей функции и celery
-        return super().save(*args, **kwargs)   # обращаемся к базовому классу, чтобы вызвать метод save, а не перезап
+        if self.id: # 'Service' instance needs to have a primary key value before this relationship can be used.
+            if self.full_price != self.__full_price: # если скидка изменилась, то изменим ее цену
+                for subscription in self.subscriptions.all(): # related name из Subscription
+                    set_price.delay(subscription.id) # обновляем поле при помощи нашей функции и celery
+            return super().save(*args, **kwargs)   # обращаемся к базовому классу, чтобы вызвать метод save, а не перез
+        else:
+            return super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Сервис'
@@ -24,6 +27,7 @@ class Service(models.Model):
 
     def __str__(self) -> str:
         return self.name
+    
 
 class Plan(models.Model):
     PLAN_TYPES = (
@@ -39,10 +43,13 @@ class Plan(models.Model):
         self.__discount_percent = self.discount_percent # фиксируем скидку
 
     def save(self, *args, **kwargs):  
-        if self.discount_percent != self.__discount_percent: 
-            for subscription in self.subscriptions.all(): # related name из Subscription
-                set_price.delay(subscription.id) 
-        return super().save(*args, **kwargs)  
+        if self.id: # 'Service' instance needs to have a primary key value before this relationship can be used.
+            if self.discount_percent != self.__discount_percent: 
+                for subscription in self.subscriptions.all(): # related name из Subscription
+                    set_price.delay(subscription.id) 
+            return super().save(*args, **kwargs) 
+        else:
+            return super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Тариф'
@@ -50,6 +57,7 @@ class Plan(models.Model):
 
     def __str__(self) -> str:
         return self.plan_types
+    
 
 class Subscripton(models.Model):
     client = models.ForeignKey(Client, related_name='subscriptions', on_delete=models.PROTECT, verbose_name='Клиент')
