@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator
 from clients.models import Client
-from services.tasks import set_price
+from services.tasks import set_price, set_comment
 
 
 class Service(models.Model):
@@ -17,6 +17,7 @@ class Service(models.Model):
             if self.full_price != self.__full_price: # если скидка изменилась, то изменим ее цену
                 for subscription in self.subscriptions.all(): # related name из Subscription
                     set_price.delay(subscription.id) # обновляем поле при помощи нашей функции и celery
+                    set_comment.delay(subscription.id)
             return super().save(*args, **kwargs)   # обращаемся к базовому классу, чтобы вызвать метод save, а не перез
         else:
             return super().save(*args, **kwargs)
@@ -47,6 +48,7 @@ class Plan(models.Model):
             if self.discount_percent != self.__discount_percent: 
                 for subscription in self.subscriptions.all(): # related name из Subscription
                     set_price.delay(subscription.id) 
+                    set_comment.delay(subscription.id)
             return super().save(*args, **kwargs) 
         else:
             return super().save(*args, **kwargs)
@@ -64,6 +66,7 @@ class Subscripton(models.Model):
     service = models.ForeignKey(Service, related_name='subscriptions', on_delete=models.PROTECT, verbose_name='Сервис')
     plan = models.ForeignKey(Plan, related_name='subscriptions', on_delete=models.PROTECT, verbose_name='Тарифный план')
     price = models.PositiveIntegerField(default=0, verbose_name='Цена')
+    comment = models.CharField(max_length=200, verbose_name="Комментарий", default='')
 
     class Meta:
         verbose_name = 'Подписка'

@@ -1,6 +1,6 @@
 version: '3.9'
 
-# docker-compose exec [имя контейнера] python manage.py [команда]
+# docker-compose exec [имя сервиса] python manage.py [команда]
 
 
 services:
@@ -35,7 +35,7 @@ services:
   worker:
     build:
       context: .
-    container_name: worker
+    container_name: worker1
     entrypoint: celery
     command: -A celery_app.app worker --loglevel=info
     volumes:
@@ -47,6 +47,23 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+
+  worker2:
+    build:
+      context: .
+    container_name: worker2
+    entrypoint: celery
+    command: -A celery_app.app worker --loglevel=info
+    volumes:
+      - .:/usr/src/service_app/
+    depends_on:
+      - redis
+      - database
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
 
   flower:
     build:
